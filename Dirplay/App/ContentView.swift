@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 import UIKit
 
@@ -6,6 +7,7 @@ struct ContentView: View {
     @Environment(PlayerViewModel.self) private var player
     @AppStorage(AppearanceMode.storageKey) private var appearanceMode = AppearanceMode.system
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.requestReview) private var requestReview
     @State private var updateChecker = AppUpdateChecker()
     @State private var selectedTab = 0
     #if DEBUG
@@ -55,6 +57,10 @@ struct ContentView: View {
         .preferredColorScheme(appearanceMode.colorScheme)
         .task { library.restore() }
         .task { await updateChecker.check() }
+        .onChange(of: player.current) { _, newTrack in
+            guard newTrack != nil else { return }
+            ReviewPrompter.noteTrackPlayed(requestReview)
+        }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active, !updateChecker.isUpdateRequired {
                 Task { await updateChecker.check() }
