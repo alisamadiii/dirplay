@@ -54,18 +54,7 @@ struct VideoFolderListView: View {
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                             selectedVideo = item
                         } label: {
-                            HStack(spacing: 12) {
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(Color(.tertiarySystemFill))
-                                    .frame(width: 60, height: 40)
-                                    .overlay {
-                                        Image(systemName: "play.fill")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                Text(item.displayName)
-                                    .lineLimit(2)
-                            }
+                            VideoRow(item: item)
                         }
                     }
                 }
@@ -82,5 +71,40 @@ struct VideoFolderListView: View {
         }
         .refreshable { library.rescan() }
         .navigationTitle(isRoot ? "Video" : folder.name)
+    }
+}
+
+/// List row with a real poster-frame thumbnail; falls back to the gray
+/// placeholder while loading or when generation fails.
+struct VideoRow: View {
+    let item: MediaItem
+    @State private var thumbnail: UIImage?
+
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color(.tertiarySystemFill))
+                if let thumbnail {
+                    Image(uiImage: thumbnail)
+                        .resizable()
+                        .scaledToFill()
+                        .transition(.opacity)
+                } else {
+                    Image(systemName: "play.fill")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 60, height: 40)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .animation(.easeInOut(duration: 0.2), value: thumbnail == nil)
+            Text(item.displayName)
+                .lineLimit(2)
+                .foregroundStyle(Color.primary)
+        }
+        .task(id: item.url) {
+            thumbnail = await VideoThumbnailLoader.shared.thumbnail(for: item.url)
+        }
     }
 }

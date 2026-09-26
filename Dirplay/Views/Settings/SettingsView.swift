@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     @Environment(LibraryViewModel.self) private var library
     @AppStorage(AppearanceMode.storageKey) private var appearanceMode = AppearanceMode.system
+    @AppStorage(VideoPlayerViewModel.skipIntervalKey) private var skipInterval = 10
     @State private var isPickingFolder = false
 
     var body: some View {
@@ -31,6 +32,23 @@ struct SettingsView: View {
                     .onChange(of: appearanceMode) { _, _ in
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     }
+                }
+                Section {
+                    Picker(selection: $skipInterval) {
+                        ForEach(VideoPlayerViewModel.skipIntervalOptions, id: \.self) { seconds in
+                            Text("\(seconds) seconds")
+                                .tag(seconds)
+                        }
+                    } label: {
+                        Label("Skip Interval", systemImage: "goforward")
+                    }
+                    .onChange(of: skipInterval) { _, _ in
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    }
+                } header: {
+                    Text("Video")
+                } footer: {
+                    Text("How far double-tapping the left or right side of a video jumps.")
                 }
                 Section {
                     LabeledContent("Version", value: "1.0")

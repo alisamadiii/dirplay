@@ -5,6 +5,12 @@ struct ContentView: View {
     @Environment(LibraryViewModel.self) private var library
     @Environment(PlayerViewModel.self) private var player
     @AppStorage(AppearanceMode.storageKey) private var appearanceMode = AppearanceMode.system
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var updateChecker = AppUpdateChecker()
+    @State private var selectedTab = 0
+    #if DEBUG
+    @State private var testVideo: MediaItem?
+    #endif
 
     var body: some View {
         @Bindable var player = player
@@ -15,21 +21,45 @@ struct ContentView: View {
             case .loading:
                 ProgressView("Scanning your library…")
             case .loaded:
-                TabView {
+                TabView(selection: $selectedTab) {
                     MusicTabView()
                         .tabItem { Label("Music", systemImage: "music.note") }
+                        .tag(0)
                     VideoTabView()
                         .tabItem { Label("Video", systemImage: "film") }
+                        .tag(1)
                     SettingsView()
                         .tabItem { Label("Settings", systemImage: "gearshape") }
+                        .tag(2)
                 }
             }
         }
         .sheet(isPresented: $player.isPresentingNowPlaying) {
             NowPlayingSheet()
         }
+        #if DEBUG
+        .fullScreenCover(item: $testVideo) { item in
+            VideoPlayerScreen(item: item)
+        }
+        #endif
+        // Blocking update gate: overlay (not a sheet) so nothing can swipe
+        // it away. Fail-open — only shows when the store confirms a newer
+        // version. The frame keeps the gate full-screen even when the
+        // underlying state (e.g. the small scanning spinner) is tiny.
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay {
+            if updateChecker.isUpdateRequired {
+                UpdateRequiredView(storeURL: updateChecker.storeURL)
+            }
+        }
         .preferredColorScheme(appearanceMode.colorScheme)
         .task { library.restore() }
+        .task { await updateChecker.check() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active, !updateChecker.isUpdateRequired {
+                Task { await updateChecker.check() }
+            }
+        }
         #if DEBUG
         .onChange(of: library.state) { _, newState in
             // Test hooks for simulator smoke tests (no UI interaction possible
@@ -81,6 +111,20 @@ struct ContentView: View {
                     try? await Task.sleep(for: .seconds(2))
                     print("SEEKTEST next+2s: currentTime=\(player.currentTime)")
                     print("SEEKTEST done")
+                }
+            }
+            if arguments.contains("-videotab") {
+                selectedTab = 1
+            }
+            if arguments.contains("-settingstab") {
+                selectedTab = 2
+            }
+            if arguments.contains("-videotest") {
+                if let videoFolder = library.videoRoot.flatMap(Self.firstFolderWithItems) {
+                    testVideo = videoFolder.items[0]
+                    print("VIDEOTEST: opening \(videoFolder.items[0].displayName)")
+                } else {
+                    print("VIDEOTEST: no video found")
                 }
             }
             if arguments.contains("-fadetest") {
