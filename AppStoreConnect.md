@@ -126,3 +126,25 @@ Dirplay plays the user's own local files and requires no account. To test: open 
 
 - The app icon in App Store Connect appears only after the first build is uploaded and processed — the placeholder before that is normal.
 - App version releases: choose "Manually release this version" if you want control of the go-live moment after approval.
+
+---
+
+## Guideline 2.1 "Information Needed" reply (sent Sep 26, 2026 — reuse on future submissions)
+
+Apple asks new accounts for this on first submission. Keep this in the App Review Notes field going forward. Video: 60–90s physical-device screen recording — launch app → welcome → pick folder → Music tab → play track → Video tab → play video → Settings.
+
+```
+Thank you for the review. Responses to each item:
+
+1. Screen recording: attached. It was captured on a physical iPhone running the latest iOS and shows the full typical flow: launching the app, selecting a folder, browsing the music library, playing audio, playing video, and the settings screen. The app has no account system (nothing to register, log in to, or delete), no user-generated content shared between users (it only reads the user's own local files), and no paid content or in-app purchases.
+
+2. Purpose and audience: Dirplay is a free, ad-free local media player. Many people keep personal music and video collections as plain files organized in folders. iOS's built-in options either require a database/library import or flatten the user's folder organization. Dirplay solves this by treating the user's own folder structure as the library: the user picks a folder once, and the app mirrors it exactly and plays the files. Target audience: anyone with a personal collection of audio/video files — DJs, language learners, audiobook listeners, people with music not available on streaming services.
+
+3. Setup instructions: no login or credentials exist. To test: open the Files app, create a folder (e.g. "MyMedia") containing two subfolders named "Music" and "Video", add any audio files (MP3/M4A) and video files (MP4/MOV), then launch Dirplay and select that folder from the welcome screen. The Music and Video tabs then list and play the files. Background audio playback works via the lock screen and Control Center.
+
+4. External services: none for core functionality. The app has no analytics, no authentication service, no payment processor, no AI services, and no third-party SDKs of any kind. The only network request the app ever makes is an anonymous version check against Apple's own public iTunes Lookup API (itunes.apple.com/lookup) to prompt users when an update is available. All media playback is fully local and works offline.
+
+5. Regional differences: none. The app functions identically in all regions and languages; there is no region-specific content or feature gating.
+
+6. Regulated industries / protected material: not applicable. The app operates in no regulated industry and ships with no third-party content whatsoever — it contains no media of its own and only plays files the user already has on their device, in the same way the Files app opens a user's documents.
+```
